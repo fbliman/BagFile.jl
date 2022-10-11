@@ -17,6 +17,6 @@ makedocs(
 )
 
 deploydocs(
-    repo="github.com/mforets SLAM_test.jl.git",
+    repo="github.com/fbliman/SLAM_test.jl.git",
     push_preview=true
 )
