@@ -35,7 +35,7 @@ end
 
 
 # find the bagfile
-bagfile = joinpath(ENV["HOME"], "fede/Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 
 # open the file
 bagSubscriber = RosbagSubscriber(bagfile)
@@ -46,7 +46,7 @@ struct MyMsg <: RobotOS.AbstractMsg
 end
 
 # subscriber callbacks
-bagSubscriber("/velodyne_points", MyMsg(""), myHandler, (robotslam,))
+bagSubscriber("/velodyne_points", RobotOS.AbstractMsg, myHandler, (robotslam,))
 
 
 isa(MyMsg(""), RobotOS.AbstractMsg)
