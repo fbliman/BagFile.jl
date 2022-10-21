@@ -16,4 +16,5 @@ RobotOS = "22415677-39a4-5241-a37a-00beabbbdae8"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
+Caesar = "0.13"
 Documenter = "0.27"
