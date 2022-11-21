@@ -1,6 +1,8 @@
 
+using Revise
 # Prepare python version
 using Pkg
+
 
 
 ENV["PYTHON"] = "/usr/bin/python3"
@@ -40,13 +42,32 @@ bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-
 # open the file
 bagSubscriber = RosbagSubscriber(bagfile)
 
-struct MyMsg <: RobotOS.AbstractMsg
-    m::String
-    MyMsg(m) = new(m)
+mutable struct MyMsg <: RobotOS.AbstractMsg
+    data::Vector{Int8}
+    height::Int32
+    MyMsg(data, height) = new(data, height)
 end
 
 # subscriber callbacks
-bagSubscriber("/velodyne_points", RobotOS.AbstractMsg, myHandler, (robotslam,))
+bagSubscriber("/velodyne_points", PCLPointCloud2, myHandler, (robotslam,))
 
+function Base.convert(::Type{MyMsg}, obj::PyObject)
+    msg = MyMsg([], 1)
+    print(keys(obj))
+    msg.height = obj[:height]
+    print(msg.height)
+    msg
+end
 
-isa(MyMsg(""), RobotOS.AbstractMsg)
+maxloops = 1000
+rosloops = 0
+while loop!(bagSubscriber)
+    # plumbing to limit the number of messages
+    rosloops += 1
+    if maxloops < rosloops
+        @warn "reached --msgloops limit of $rosloops"
+        break
+    end
+    # delay progress for whatever reason
+    blockProgress(robotslam) # required to prevent duplicate solves occuring at the same time
+end
