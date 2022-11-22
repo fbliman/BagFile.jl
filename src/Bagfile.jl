@@ -368,61 +368,13 @@ function OpenBag(path::String)
 end
 
 
+"""
+function that read one data message at a time of the given String
+
+"""
+
+function read(bagfile::Bagfile, topic::String)
+    file = open(path)  #abro archivo
 
 
-######### tests #######
-
-# find the bagfile
-bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
-
-bag_info = OpenBag(bagfile)
-
-bag_info.start_time
-bag_info.end_time
-bag_info.end_time - bag_info.start_time
-bag_info.size
-bag_info.messages
-bag_info.topics["/velodyne_points"].n_msg
-
-print(bag_info)
-bag_info
-bag = open(bagfile)
-close(bag)
-
-
-
-topicos = topics(bag)
-
-
-
-
-f = leer_header(bag)
-record = leer_record(bag)
-
-record
-String(record.header["compression"].value)
-record.header["op"].value
-
-
-while record.header["op"].value == UInt8[0x04] || record.header["op"].value == UInt8[0x05]
-    record = leer_record(bag)
 end
-
-while record.header["op"].value == UInt8[0x06]
-    record = leer_record(bag)
-end
-
-a = [3,]
-
-copy(reinterpret(UInt32, record.header["conn"].value))
-unix2datetime(88484848)
-typeof(filesize(bagfile))
-
-String(copy(bag_info.types["sensor_msgs/CameraInfo"].md5sum))
-bag_info.topics["/rosout"].conns
-a = copy(reinterpret(UInt32, bag_info.chunks))
-bag_info.compression
-unix2datetime((copy(reinterpret(Int32, UInt8[0x7c, 0xb3, 0xc5, 0x62, 0x79, 0x3c, 0xb2, 0x26]))[1]) + (copy(reinterpret(Int32, UInt8[0x7c, 0xb3, 0xc5, 0x62, 0x79, 0x3c, 0xb2, 0x26]))[1]) / 1000 / 1000 / 1000)
-a = (copy(reinterpret(Int32, UInt8[0x7c, 0xb3, 0xc5, 0x62, 0x79, 0x3c, 0xb2, 0x26]))[2]) / 1000 / 1000
-a = floor(Millisecond(2400000), Dates.Second)
-floor(mod(Millisecond(2423120), Millisecond(60000)), Dates.Second)
