@@ -138,7 +138,7 @@ Funcion para leer la primera linea del rosbag y verificar que esta OK
 function leer_bag_header(io::IO)
 
     h = readline(io)
-    println(h)
+    #println(h)
     expected = "#ROSBAG V2.0"
     if h == expected
         return true
@@ -294,8 +294,12 @@ function OpenBag(path::String)
     bag.compression = String(copy(record.header["compression"].value))
 
     while record.header["op"].value != UInt8[0x07]  #busco topic information
+
         record = leer_record(file)
+
+
     end
+
 
     while record.header["op"].value == UInt8[0x07]  #proceso connections y cargo topics
         data = parse_connection(record)
@@ -368,13 +372,271 @@ function OpenBag(path::String)
 end
 
 
-"""
-function that read one data message at a time of the given String
+mutable struct Read
+    bagfile::Bagfile
+    topic::String
+end
 
-"""
+mutable struct Read_State
+    io::IO
+    tot_msg::Int
+    current_msg::Int
+    chunk_num::Int
+    current_chunk::Record
+    current_index::Record
+    pos_in_index::Int
+end
 
-function read(bagfile::Bagfile, topic::String)
-    file = open(path)  #abro archivo
 
+function Base.iterate(read::Read)
+    io = open(read.bagfile.path)
+    tot_msg = read.bagfile.topics[read.topic].n_msg
+    current_msg = 1
+    current_chunk = 1
+    io = open(bagfile)  #abro archivo
+    leer_bag_header(io) #primera linea
+    leer_record(io) #bag header record
+    #println("canales a buscar", read.bagfile.topics[read.topic].conns)
+    chunk_record = leer_record(io)
+    #println(chunk_record.header["op"].value)
+    index_record = undef
+
+    while chunk_record.header["op"].value == UInt8[0x05]
+        #println("lei chunk")
+
+        index_record = leer_record(io)
+
+        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.bagfile.topics[read.topic].conns)
+            #println("canal del index:", reinterpret(UInt32, index_record.header["conn"].value))
+            index_record = leer_record(io)
+            println
+
+            if index_record.header["op"].value != UInt8[0x04]
+                chunk_record = index_record
+                current_chunk = +1
+                break
+            end
+
+        end
+        #println("corto loop index")
+
+        if index_record.header["op"].value == UInt8[0x04]
+            #   println("corto loop chunks")
+            break
+        end
+
+    end
+
+    state = Read_State(io, tot_msg, current_msg, current_chunk, chunk_record, index_record, 1)
+    pos = reinterpret(Int32, index_record.data[1:12])[3]
+    record = leer_record(chunk_record.data, Int32(pos + 1))
+
+    return record, state
 
 end
+
+
+function Base.iterate(read::Read, state::Read_State)
+
+    if state.current_msg == state.tot_msg # si termino devuelvo nothing
+        return nothing
+    else #actualizo state
+        state.current_msg += 1 #paso al siguiente mensaje
+        state.pos_in_index += 1
+    end
+
+    #primero sigo iterando en la conexion abierta
+    if state.pos_in_index <= state.current_index.data_len[1] / 12
+        pos = reinterpret(Int32, state.current_index.data[(1+(state.pos_in_index-1)*12):(12+(state.pos_in_index-1)*12)])[3]
+        record = leer_record(state.current_chunk.data, Int32(pos + 1))
+        #println("sigo en la coneccion abierta")
+        return record, state #devulvo record y estado actualizado 
+    end
+
+    # se acabo la conection, miro siguientes conecctiones dentro del chunk si las hay o voy al siguiente chunk
+    #println("nueva conexion")
+    next_record = leer_record(state.io)
+    index_record = undef
+    chunk_record = undef
+
+    if next_record.header["op"].value == UInt8[0x04]
+        index_record = next_record
+        chunk_record = state.current_chunk
+    elseif next_record.header["op"].value == UInt8[0x05]
+        chunk_record = next_record
+        state.chunk_num += 1
+        index_record = leer_record(state.io)
+    elseif state.chunk_num == read.bagfile.chunks
+        return nothing
+    end
+
+
+    while chunk_record.header["op"].value == UInt8[0x05]
+
+
+
+        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.bagfile.topics[read.topic].conns)
+
+            #  println("canal del index:", reinterpret(UInt32, index_record.header["conn"].value))
+            index_record = leer_record(state.io)
+            println
+
+            if index_record.header["op"].value != UInt8[0x04]
+                chunk_record = index_record
+                state.chunk_num += 1
+                break
+            end
+
+        end
+        #println("corto loop index")
+
+        if index_record.header["op"].value == UInt8[0x04]
+            #   println("corto loop chunks")
+            break
+        else
+            index_record = leer_record(state.io)
+        end
+
+    end
+
+
+    pos = reinterpret(Int32, index_record.data[1:12])[3]
+    record = leer_record(chunk_record.data, Int32(pos + 1))
+    state.current_chunk = chunk_record
+    state.current_index = index_record
+    state.pos_in_index = 1
+
+
+
+    return record, state
+
+end
+
+"""
+ffuncion que lee todos los mensages del primer index del primer chunk (para test)
+
+"""
+
+function read_all(bagfile::String)
+    io = open(bagfile)  #abro archivo
+    leer_bag_header(io) #primera linea
+    leer_record(io) #bag header record
+
+    chunk_record = leer_record(io)
+    index_record = leer_record(io)
+
+    data = Dict{Int,Record}()
+    records = index_record.data_len[1] / 12
+    counter = 1
+    while counter <= records
+        pos = reinterpret(Int32, index_record.data[(1+(counter-1)*12):(12+(counter-1)*12)])[3]
+        record = leer_record(chunk_record.data, Int32(pos + 1))
+        data[counter] = record
+        counter += 1
+    end
+
+
+    close(io)
+    return data
+    #return chunk_record, index_record
+
+end
+
+
+"""
+funcion que lee un record, en la posiscion por del chunk
+
+"""
+
+function leer_record(chunk::Vector{UInt8}, pos::Int32)
+
+    header_len = reinterpret(Int32, chunk[(pos):(pos+3)])[1]
+    #println("el lenght del header es $header_len")
+    header_hex = chunk[(pos+4):(pos+3+header_len)]
+    #ahora tengo que leer los fields
+    header = Dict{String,Field}()
+    counter = 1
+    while counter < header_len
+        field_len = copy(reinterpret(UInt32, header_hex[counter:(counter+3)]))[1]
+        #   println("length de field = $field_len")
+        counter = counter + 4
+        field_name_value = header_hex[counter:(counter+field_len-1)]
+        counter = counter + field_len
+        separator = findfirst(==(0x3d), field_name_value)
+        field_name = String(field_name_value[1:(separator-1)])
+        field_value = field_name_value[(separator+1):end]
+        field = Field(field_len, field_name, field_value)
+        header[field_name] = field
+        #  println("Field = $field")
+    end
+    data_start = pos + 4 + header_len
+    data_len = copy(reinterpret(Int32, chunk[data_start:(data_start+3)])[1])
+    #println("el lenght del data es $data_len")
+    data_hex = chunk[(data_start+4):(data_start+data_len+3)]
+
+    return Record(header_len, header, data_len, data_hex)
+
+end
+
+
+
+########## testes ####################
+bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+bagfile2 = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_alto_2022-07-06-11-45-29.bag")
+
+
+data = read_all(bagfile)
+
+pos = reinterpret(Int32, index.data[1:12])
+string.(index.data[1:10])
+String(copy(chunk.data[2775:2870]))
+
+data_record = leer_record(chunk.data, Int32(2775 + 1))
+
+bag_info = OpenBag(bagfile)
+
+size(index.data)[1]
+reinterpret(Int32, index.data_len)
+header_len = reinterpret(Int32, chunk.data[(pos):(pos+3)])[1]
+
+
+records = read_all(bagfile)
+records[1]
+
+
+next = iterate(Read(bag_info, "/imu/data"))
+(i, state) = next
+next = iterate(Read(bag_info, "/imu/data"), next[2])
+(i, state) = next
+next[2].chunk_num
+String(copy(next[1].data))
+next[1].header
+
+next[1].data[1:4]
+next[1].data[5:12]
+reinterpret(Int32, next[1].data[13:16])
+String(copy(next[1].data[17:24]))
+orientation = reinterpret(Float64, next[1].data[25:(24+8*4)])
+orientation_cov = reshape(reinterpret(Float64, next[1].data[(25+8*4):(24+8*13)]), (3, 3))
+angular_vel = reinterpret(Float64, next[1].data[(25+8*13):(24+8*16)])
+angular_cov = reshape(reinterpret(Float64, next[1].data[(25+8*16):(24+8*25)]), (3, 3))
+linear_vel = reinterpret(Float64, next[1].data[(25+8*25):(24+8*28)])
+lienar_cov = reshape(reinterpret(Float64, next[1].data[(25+8*28):(24+8*37)]), (3, 3))
+unix2datetime(copy(reinterpret(Int32, next[1].data[5:8]))[1])
+24 + 8 * 37
+
+a = Imu(next[1].data)
+bagfile
+io = open("ros_output.txt", "w")
+write(io, run(`rosbag info $bagfile`))
+close(io)
+io = open("ros_output.txt", "r")
+read(io, String)
+typeof(ros_output)
+ros_output.cmd
+
+
+io = IOBuffer()
+show(IOContext(io), "text/plain", run(`rosbag info $bagfile`))
+s = String(take!(io))
+print(s)
