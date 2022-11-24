@@ -96,7 +96,11 @@ mutable struct BagFileData
     connections::Dict{UInt32,String}
 
 end
+"""
+BagFileData constructor
+receives only a String with the path
 
+"""
 function BagFileData(path; version="#ROSBAG V2.0", duration=Millisecond(0), start_time=unix2datetime(typemax(Int32)), end_time=unix2datetime(0), size=0, messages=0, compression="none", chunks=0, types=Dict{String,Msgtype}(), topics=Dict{String,Topic}(), connections=Dict{UInt32,String}())
 
     return BagFileData(path, version, duration, start_time, end_time, size, messages, compression, chunks, types, topics, connections)
@@ -136,6 +140,7 @@ function Base.show(io::IO, bag::BagFileData)
 end
 =#
 """
+leer_bag_header(io::IO)
 Funcion para leer la primera linea del rosbag y verificar que esta OK
 
 """
@@ -220,6 +225,7 @@ function topics(bag::IO)
 end
 
 """
+parse_connection(record::Record)
 function that receives a connection record and returns a Dict with the data
 """
 function parse_connection(record::Record)
@@ -251,6 +257,7 @@ end
 
 
 """
+parse_chunk_info(record::Record)v
 function that receives a chunk info record and returns a Dict with the data
 """
 function parse_chunk_info(record::Record)
@@ -273,6 +280,7 @@ end
 
 
 """
+OpenBag(path::String)
 Funcion que inicialize un BagFileData y devuelve el struct BagFileData con la metadata
 """
 
@@ -375,13 +383,24 @@ function OpenBag(path::String)
     close(file) #cierro al salir
     return bag
 end
+"""
+Read
 
+struct to iterate on the messages of a BagFile
+
+
+"""
 
 mutable struct Read
     BagFileData::BagFileData
     topic::String
 end
 
+"""
+Read_State
+
+state for iteration the BagFile
+"""
 mutable struct Read_State
     io::IO
     tot_msg::Int
@@ -392,6 +411,10 @@ mutable struct Read_State
     pos_in_index::Int
 end
 
+"""
+Overloads Base.iterate for reading a BagFile
+
+"""
 
 function Base.iterate(read::Read)
     io = open(read.BagFileData.path)
@@ -440,6 +463,10 @@ function Base.iterate(read::Read)
 
 end
 
+"""
+Overloads Base.iterate for reading a BagFile
+
+"""
 
 function Base.iterate(read::Read, state::Read_State)
 
@@ -549,6 +576,7 @@ end
 
 
 """
+leer_record(chunk::Vector{UInt8}, pos::Int32)
 funcion que lee un record, en la posiscion por del chunk
 
 """
