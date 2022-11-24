@@ -12,3 +12,7 @@ The aim is to provide a library for working with ROS bags in the same way as the
 ```@contents
 Pages = ["index.md"]
 ```
+
+```@docs
+BagFile
+```
