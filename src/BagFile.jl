@@ -1,9 +1,13 @@
 using Revise
 
-"""
-   RosBag.jl
 
-this package reproduces the "rosbag command-line tool" for Julia
+
+
+module BagFile
+"""
+   RosBag
+
+this module reproduces the "rosbag command-line tool" for Julia
 record
 Record a bag file with the contents of specified topics.
 
@@ -33,10 +37,6 @@ Reindex one or more broken bag files.
 
 .
 """
-
-
-module BagFile
-
 
 using Dates
 

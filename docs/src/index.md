@@ -14,7 +14,7 @@ Pages = ["index.md"]
 ```
 
 ```@docs
-RosBag.jl
+RosBag
 ```
 
 ```@docs
