@@ -72,7 +72,10 @@ mutable struct Topic
 end
 
 """
-struct con metadata del BagFileData
+BagFileData
+
+struct con metadata del BagFile
+Para el constructor solo se necesita el path y luego con la funcion open se populan los datos
 es posible que se agregue el IO y un puntero de referncia?
 
 """
