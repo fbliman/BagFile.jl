@@ -29,9 +29,8 @@ Decompress one or more bag files.
 reindex (not implemented)
 Reindex one or more broken bag files.
 
-
+.
 """
-
 
 
 using Revise
