@@ -384,11 +384,12 @@ function OpenBag(path::String)
     return bag
 end
 """
+```
 Read
 
 struct to iterate on the messages of a BagFile
 
-
+```
 """
 
 mutable struct Read
