@@ -6,13 +6,14 @@ DocMeta.setdocmeta!(BagFile, :DocTestSetup,
 
 makedocs(
     sitename="BagFile",
-    modules=[BagFile],
+    modules=[BagFile, ROS_Messages],
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         assets=["assets/aligned.css"]),
     pages=[
         "Home" => "index.md"
     ],
+    doctest=false,
     strict=false
 )
 
