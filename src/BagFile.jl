@@ -72,7 +72,7 @@ mutable struct Topic
 end
 
 """
-BagFileData
+    BagFileData
 
 struct con metadata del BagFile
 Para el constructor solo se necesita el path y luego con la funcion open se populan los datos
