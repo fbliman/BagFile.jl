@@ -33,10 +33,13 @@ Reindex one or more broken bag files.
 .
 """
 
+include("std_msgs.jl")
+
 module BagFile
 
 
 using Dates
+
 
 
 struct Field

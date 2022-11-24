@@ -92,8 +92,3 @@ end
 export Header, Vector3, Matrix3, Quaternion, Imu
 
 end
-###testes
-data = rand(UInt8, 72)
-a = Matrix3(reshape(reinterpret(Float64, data), (3, 3)))
-print(a.m)
-Quaternion(data)
