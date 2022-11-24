@@ -37,12 +37,12 @@ function myHandler(msgdata, slam_::SLAMWrapperLocal)
 end
 
 
-# find the bagfile
-bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+# find the BagFile
+BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 
 
 
-bagrd = Caesar.RosbagParser(bagfile, "/velodyne_points")
+bagrd = Caesar.RosbagParser(BagFile, "/velodyne_points")
 msg = bagrd.get_next_message
 
 print(keys(msg))

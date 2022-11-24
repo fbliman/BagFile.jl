@@ -36,11 +36,11 @@ function myHandler(msgdata, slam_::SLAMWrapperLocal)
 end
 
 
-# find the bagfile
-bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+# find the BagFile
+BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 
 # open the file
-bagSubscriber = RosbagSubscriber(bagfile)
+bagSubscriber = RosbagSubscriber(BagFile)
 
 mutable struct MyMsg <: RobotOS.AbstractMsg
     data::Vector{Int8}

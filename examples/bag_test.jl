@@ -70,12 +70,12 @@ mutable struct Topic
 end
 
 """
-struct con metadata del bagfile
+struct con metadata del BagFile
 es posible que se agregue el IO y un puntero de referncia?
 
 """
 
-mutable struct Bagfile
+mutable struct BagFile
 
     path::String
     version::String
@@ -92,13 +92,13 @@ mutable struct Bagfile
 
 end
 
-function Bagfile(path; version="#ROSBAG V2.0", duration=Millisecond(0), start_time=unix2datetime(typemax(Int32)), end_time=unix2datetime(0), size=0, messages=0, compression="none", chunks=0, types=Dict{String,Msgtype}(), topics=Dict{String,Topic}(), connections=Dict{UInt32,String}())
+function BagFile(path; version="#ROSBAG V2.0", duration=Millisecond(0), start_time=unix2datetime(typemax(Int32)), end_time=unix2datetime(0), size=0, messages=0, compression="none", chunks=0, types=Dict{String,Msgtype}(), topics=Dict{String,Topic}(), connections=Dict{UInt32,String}())
 
-    return Bagfile(path, version, duration, start_time, end_time, size, messages, compression, chunks, types, topics, connections)
+    return BagFile(path, version, duration, start_time, end_time, size, messages, compression, chunks, types, topics, connections)
 
 end
 
-function Base.show(io::IO, ::MIME"text/plain", bag::Bagfile)
+function Base.show(io::IO, ::MIME"text/plain", bag::BagFile)
     print(io, "path:\t\t $(bag.path) \n")
     print(io, "version:\t $(bag.version) \n")
     print(io, "duration:\t $(floor(bag.duration, Dates.Minute)):$(floor(mod(bag.duration, Millisecond(60000)), Dates.Second)) ($(floor(bag.duration, Dates.Second)))\n")
@@ -124,7 +124,7 @@ function Base.show(io::IO, ::MIME"text/plain", bag::Bagfile)
 end
 
 #=
-function Base.show(io::IO, bag::Bagfile)
+function Base.show(io::IO, bag::BagFile)
     print(io, "path:\t $bag.path \n")
     print(io, "version:\t $bag.version \n")
 
@@ -268,12 +268,12 @@ end
 
 
 """
-Funcion que inicialize un bagfile y devuelve el struct bagfile con la metadata
+Funcion que inicialize un BagFile y devuelve el struct BagFile con la metadata
 """
 
 function OpenBag(path::String)
     file = open(path)  #abro archivo
-    bag = Bagfile(path)   #creo Bagfile
+    bag = BagFile(path)   #creo BagFile
     bag.size = filesize(path) #tamaño del archivo
     topics = Dict{String,Topic}() #dictionary tu return
     types = Dict{String,Msgtype}() #dictionary tu return
@@ -282,7 +282,7 @@ function OpenBag(path::String)
     if leer_bag_header(file) #leo primera linea y verifico version 2.0 (unica version comptabible)
         bag.version = "2.0"
     else
-        error("Bagfile before 2.0 not compatible")
+        error("BagFile before 2.0 not compatible")
     end
 
     record = leer_record(file) #lee el primer record que deberia se un bad header 0x03
@@ -372,10 +372,10 @@ end
 
 ######### tests #######
 
-# find the bagfile
-bagfile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+# find the BagFile
+BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 
-bag_info = OpenBag(bagfile)
+bag_info = OpenBag(BagFile)
 
 bag_info.start_time
 bag_info.end_time
@@ -386,7 +386,7 @@ bag_info.topics["/velodyne_points"].n_msg
 
 print(bag_info)
 bag_info
-bag = open(bagfile)
+bag = open(BagFile)
 close(bag)
 
 
@@ -416,7 +416,7 @@ a = [3,]
 
 copy(reinterpret(UInt32, record.header["conn"].value))
 unix2datetime(88484848)
-typeof(filesize(bagfile))
+typeof(filesize(BagFile))
 
 String(copy(bag_info.types["sensor_msgs/CameraInfo"].md5sum))
 bag_info.topics["/rosout"].conns

@@ -1,12 +1,12 @@
-using Documenter, SLAM_test
+using Documenter, BagFile
 
 
-DocMeta.setdocmeta!(SLAM_test, :DocTestSetup,
-    :(using SLAM_test); recursive=true)
+DocMeta.setdocmeta!(BagFile, :DocTestSetup,
+    :(using BagFile); recursive=true)
 
 makedocs(
-    sitename="SLAM_test",
-    modules=[SLAM_test],
+    sitename="BagFile",
+    modules=[BagFile],
     format=Documenter.HTML(
         prettyurls=get(ENV, "CI", nothing) == "true",
         assets=["assets/aligned.css"]),
@@ -17,6 +17,6 @@ makedocs(
 )
 
 deploydocs(
-    repo="github.com/fbliman/SLAM_test.jl.git",
+    repo="github.com/fbliman/BagFile.jl.git",
     push_preview=true
 )

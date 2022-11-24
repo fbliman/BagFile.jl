@@ -73,5 +73,5 @@ function leer_datos(archivo::String; num_datos=100, num_muestras=1, Nin=UInt8, N
 end
 
 
-data = leer_datos(bagfile, num_datos=50, num_muestras=1)
+data = leer_datos(BagFile, num_datos=50, num_muestras=1)
 print(data)

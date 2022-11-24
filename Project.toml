@@ -1,4 +1,4 @@
-name = "SLAM_test"
+name = "BagFile"
 uuid = "c5fe8a6f-ce7b-42b0-bae8-cce727454a10"
 authors = ["Federico Bliman <fbliman@gmail.com>"]
 version = "0.1.0"
