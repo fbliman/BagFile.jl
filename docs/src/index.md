@@ -14,5 +14,5 @@ Pages = ["index.md"]
 ```
 
 ```@docs
-BagFile
+BagFileData
 ```
