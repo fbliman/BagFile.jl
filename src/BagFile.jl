@@ -32,8 +32,9 @@ Reindex one or more broken bag files.
 .
 """
 
+module BagFile
 
-using Revise
+
 using Dates
 
 
@@ -70,12 +71,12 @@ mutable struct Topic
 end
 
 """
-struct con metadata del BagFile
+struct con metadata del BagFileData
 es posible que se agregue el IO y un puntero de referncia?
 
 """
 
-mutable struct BagFile
+mutable struct BagFileData
 
     path::String
     version::String
@@ -92,13 +93,13 @@ mutable struct BagFile
 
 end
 
-function BagFile(path; version="#ROSBAG V2.0", duration=Millisecond(0), start_time=unix2datetime(typemax(Int32)), end_time=unix2datetime(0), size=0, messages=0, compression="none", chunks=0, types=Dict{String,Msgtype}(), topics=Dict{String,Topic}(), connections=Dict{UInt32,String}())
+function BagFileData(path; version="#ROSBAG V2.0", duration=Millisecond(0), start_time=unix2datetime(typemax(Int32)), end_time=unix2datetime(0), size=0, messages=0, compression="none", chunks=0, types=Dict{String,Msgtype}(), topics=Dict{String,Topic}(), connections=Dict{UInt32,String}())
 
-    return BagFile(path, version, duration, start_time, end_time, size, messages, compression, chunks, types, topics, connections)
+    return BagFileData(path, version, duration, start_time, end_time, size, messages, compression, chunks, types, topics, connections)
 
 end
 
-function Base.show(io::IO, ::MIME"text/plain", bag::BagFile)
+function Base.show(io::IO, ::MIME"text/plain", bag::BagFileData)
     print(io, "path:\t\t $(bag.path) \n")
     print(io, "version:\t $(bag.version) \n")
     print(io, "duration:\t $(floor(bag.duration, Dates.Minute)):$(floor(mod(bag.duration, Millisecond(60000)), Dates.Second)) ($(floor(bag.duration, Dates.Second)))\n")
@@ -124,7 +125,7 @@ function Base.show(io::IO, ::MIME"text/plain", bag::BagFile)
 end
 
 #=
-function Base.show(io::IO, bag::BagFile)
+function Base.show(io::IO, bag::BagFileData)
     print(io, "path:\t $bag.path \n")
     print(io, "version:\t $bag.version \n")
 
@@ -268,12 +269,12 @@ end
 
 
 """
-Funcion que inicialize un BagFile y devuelve el struct BagFile con la metadata
+Funcion que inicialize un BagFileData y devuelve el struct BagFileData con la metadata
 """
 
 function OpenBag(path::String)
     file = open(path)  #abro archivo
-    bag = BagFile(path)   #creo BagFile
+    bag = BagFileData(path)   #creo BagFileData
     bag.size = filesize(path) #tamaño del archivo
     topics = Dict{String,Topic}() #dictionary tu return
     types = Dict{String,Msgtype}() #dictionary tu return
@@ -282,7 +283,7 @@ function OpenBag(path::String)
     if leer_bag_header(file) #leo primera linea y verifico version 2.0 (unica version comptabible)
         bag.version = "2.0"
     else
-        error("BagFile before 2.0 not compatible")
+        error("BagFileData before 2.0 not compatible")
     end
 
     record = leer_record(file) #lee el primer record que deberia se un bad header 0x03
@@ -373,7 +374,7 @@ end
 
 
 mutable struct Read
-    BagFile::BagFile
+    BagFileData::BagFileData
     topic::String
 end
 
@@ -389,14 +390,14 @@ end
 
 
 function Base.iterate(read::Read)
-    io = open(read.BagFile.path)
-    tot_msg = read.BagFile.topics[read.topic].n_msg
+    io = open(read.BagFileData.path)
+    tot_msg = read.BagFileData.topics[read.topic].n_msg
     current_msg = 1
     current_chunk = 1
-    io = open(BagFile)  #abro archivo
+    io = open(BagFileData)  #abro archivo
     leer_bag_header(io) #primera linea
     leer_record(io) #bag header record
-    #println("canales a buscar", read.BagFile.topics[read.topic].conns)
+    #println("canales a buscar", read.BagFileData.topics[read.topic].conns)
     chunk_record = leer_record(io)
     #println(chunk_record.header["op"].value)
     index_record = undef
@@ -406,7 +407,7 @@ function Base.iterate(read::Read)
 
         index_record = leer_record(io)
 
-        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.BagFile.topics[read.topic].conns)
+        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.BagFileData.topics[read.topic].conns)
             #println("canal del index:", reinterpret(UInt32, index_record.header["conn"].value))
             index_record = leer_record(io)
             println
@@ -466,7 +467,7 @@ function Base.iterate(read::Read, state::Read_State)
         chunk_record = next_record
         state.chunk_num += 1
         index_record = leer_record(state.io)
-    elseif state.chunk_num == read.BagFile.chunks
+    elseif state.chunk_num == read.BagFileData.chunks
         return nothing
     end
 
@@ -475,7 +476,7 @@ function Base.iterate(read::Read, state::Read_State)
 
 
 
-        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.BagFile.topics[read.topic].conns)
+        while !(reinterpret(UInt32, index_record.header["conn"].value)[1] in read.BagFileData.topics[read.topic].conns)
 
             #  println("canal del index:", reinterpret(UInt32, index_record.header["conn"].value))
             index_record = leer_record(state.io)
@@ -517,8 +518,8 @@ ffuncion que lee todos los mensages del primer index del primer chunk (para test
 
 """
 
-function read_all(BagFile::String)
-    io = open(BagFile)  #abro archivo
+function read_all(BagFileData::String)
+    io = open(BagFileData)  #abro archivo
     leer_bag_header(io) #primera linea
     leer_record(io) #bag header record
 
@@ -580,63 +581,4 @@ end
 
 
 
-########## testes ####################
-BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
-BagFile2 = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_alto_2022-07-06-11-45-29.bag")
-
-
-data = read_all(BagFile)
-
-pos = reinterpret(Int32, index.data[1:12])
-string.(index.data[1:10])
-String(copy(chunk.data[2775:2870]))
-
-data_record = leer_record(chunk.data, Int32(2775 + 1))
-
-bag_info = OpenBag(BagFile)
-
-size(index.data)[1]
-reinterpret(Int32, index.data_len)
-header_len = reinterpret(Int32, chunk.data[(pos):(pos+3)])[1]
-
-
-records = read_all(BagFile)
-records[1]
-
-
-next = iterate(Read(bag_info, "/imu/data"))
-(i, state) = next
-next = iterate(Read(bag_info, "/imu/data"), next[2])
-(i, state) = next
-next[2].chunk_num
-String(copy(next[1].data))
-next[1].header
-
-next[1].data[1:4]
-next[1].data[5:12]
-reinterpret(Int32, next[1].data[13:16])
-String(copy(next[1].data[17:24]))
-orientation = reinterpret(Float64, next[1].data[25:(24+8*4)])
-orientation_cov = reshape(reinterpret(Float64, next[1].data[(25+8*4):(24+8*13)]), (3, 3))
-angular_vel = reinterpret(Float64, next[1].data[(25+8*13):(24+8*16)])
-angular_cov = reshape(reinterpret(Float64, next[1].data[(25+8*16):(24+8*25)]), (3, 3))
-linear_vel = reinterpret(Float64, next[1].data[(25+8*25):(24+8*28)])
-lienar_cov = reshape(reinterpret(Float64, next[1].data[(25+8*28):(24+8*37)]), (3, 3))
-unix2datetime(copy(reinterpret(Int32, next[1].data[5:8]))[1])
-24 + 8 * 37
-
-a = Imu(next[1].data)
-BagFile
-io = open("ros_output.txt", "w")
-write(io, run(`rosbag info $BagFile`))
-close(io)
-io = open("ros_output.txt", "r")
-read(io, String)
-typeof(ros_output)
-ros_output.cmd
-
-
-io = IOBuffer()
-show(IOContext(io), "text/plain", run(`rosbag info $BagFile`))
-s = String(take!(io))
-print(s)
+end
