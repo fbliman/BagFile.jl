@@ -1,6 +1,6 @@
 using Revise
 """
-RosBag.jl
+    RosBag.jl
 
 this package reproduces the "rosbag command-line tool" for Julia
 record
@@ -33,13 +33,13 @@ Reindex one or more broken bag files.
 .
 """
 
-include("std_msgs.jl")
 
 module BagFile
 
 
 using Dates
 
+include("std_msgs.jl")
 
 
 struct Field

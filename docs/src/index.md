@@ -14,5 +14,9 @@ Pages = ["index.md"]
 ```
 
 ```@docs
+RosBag.jl
+```
+
+```@docs
 BagFileData
 ```
