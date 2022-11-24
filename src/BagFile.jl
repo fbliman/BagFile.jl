@@ -1,6 +1,7 @@
 using Revise
+
 """
-    RosBag.jl
+   RosBag.jl
 
 this package reproduces the "rosbag command-line tool" for Julia
 record
