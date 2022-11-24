@@ -373,9 +373,9 @@ end
 ######### tests #######
 
 # find the BagFile
-BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+Bagpath = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 
-bag_info = OpenBag(BagFile)
+bag_info = OpenBag(Bagpath)
 
 bag_info.start_time
 bag_info.end_time
@@ -386,7 +386,7 @@ bag_info.topics["/velodyne_points"].n_msg
 
 print(bag_info)
 bag_info
-bag = open(BagFile)
+bag = open(Bagpath)
 close(bag)
 
 
@@ -416,7 +416,7 @@ a = [3,]
 
 copy(reinterpret(UInt32, record.header["conn"].value))
 unix2datetime(88484848)
-typeof(filesize(BagFile))
+typeof(filesize(Bagpath))
 
 String(copy(bag_info.types["sensor_msgs/CameraInfo"].md5sum))
 bag_info.topics["/rosout"].conns

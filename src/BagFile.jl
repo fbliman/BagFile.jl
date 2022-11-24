@@ -1,3 +1,4 @@
+using Revise
 """
 RosBag.jl
 
@@ -394,7 +395,7 @@ function Base.iterate(read::Read)
     tot_msg = read.BagFileData.topics[read.topic].n_msg
     current_msg = 1
     current_chunk = 1
-    io = open(BagFileData)  #abro archivo
+    #io = open(BagFileData)  #abro archivo
     leer_bag_header(io) #primera linea
     leer_record(io) #bag header record
     #println("canales a buscar", read.BagFileData.topics[read.topic].conns)
@@ -580,5 +581,5 @@ function leer_record(chunk::Vector{UInt8}, pos::Int32)
 end
 
 
-
+export OpenBag, BagFileData, Read
 end
