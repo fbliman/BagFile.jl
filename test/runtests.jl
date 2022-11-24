@@ -1,11 +1,13 @@
 using Test
+using BagFile
+using Dates
 
-BagFile = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
-bag_info = OpenBag(BagFile)
+Bagpath = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
+bag_info = OpenBag(Bagpath)
 
 
 
-@test bag_info.path == BagFile
+@test bag_info.path == Bagpath
 @test (floor(bag_info.duration, Dates.Second)) == Dates.Second(1465)
 @test bag_info.messages == 2738777
 @test length(bag_info.types) == 11
