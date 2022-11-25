@@ -166,7 +166,7 @@ funcion que lee un record, avanza el io hasta el final del record y devuelve un 
 
 """
 
-function leer_record(io::IO)
+function leer_record(io::IO; read_chunk::Bool=true)
 
     header_len = read(io, UInt32)
     #println("el lenght del header es $header_len")
@@ -190,13 +190,19 @@ function leer_record(io::IO)
     end
 
     data_len = read(io, UInt32)
-    #println("el lenght del data es $data_len")
     data_hex = Vector{UInt8}(undef, data_len)
-    readbytes!(io, data_hex)
+    #println("el lenght del data es $data_len")
+    if (read_chunk == false && header["op"].value == UInt8[0x05])
+        skip(io, data_len)
+    else
+        readbytes!(io, data_hex)
+    end
 
     return Record(header_len, header, data_len, data_hex)
 
 end
+
+
 
 
 
@@ -302,7 +308,7 @@ function OpenBag(path::String)
         error("BagFileData before 2.0 not compatible")
     end
 
-    record = leer_record(file) #lee el primer record que deberia se un bad header 0x03
+    record = leer_record(file) #lee el primer record que deberia se un bag header 0x03
 
     bag.chunks = copy(reinterpret(UInt32, record.header["chunk_count"].value))[1] + 0
 
@@ -312,7 +318,7 @@ function OpenBag(path::String)
 
     while record.header["op"].value != UInt8[0x07]  #busco topic information
 
-        record = leer_record(file)
+        record = leer_record(file, false)
 
 
     end
