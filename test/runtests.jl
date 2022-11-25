@@ -3,7 +3,7 @@ using BagFile
 using Dates
 
 Bagpath = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
-bag_info = OpenBag(Bagpath)
+@time bag_info = OpenBag(Bagpath)
 
 
 
