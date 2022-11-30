@@ -1,4 +1,13 @@
-module ROS_Messages
+"""
+    ROSMessages
+
+This module contains the structs and constructors for all ROS serialized data
+"""
+module ROSMessages
+
+using Reexport: @reexport
+
+export Header, Vector3, Matrix3, Quaternion, Imu
 
 abstract type Msg end
 abstract type Std_msgs <: Msg end
@@ -89,6 +98,6 @@ function Base.show(io::IO, ::MIME"text/plain", imu::Imu)
     println(io, "linear_acc_cov covariance:\t $(imu.linear_acc_cov)")
 end
 
-export Header, Vector3, Matrix3, Quaternion, Imu
+
 
 end
