@@ -5,8 +5,6 @@ using Dates
 Bagpath = joinpath(ENV["HOME"], "Facultad/Big_files/Bag_Files/inia_bajo_2022-07-06-12-44-02.bag")
 @time bag_info = OpenBag(Bagpath)
 
-
-
 @test bag_info.path == Bagpath
 @test (floor(bag_info.duration, Dates.Second)) == Dates.Second(1465)
 @test bag_info.messages == 2738777
@@ -23,3 +21,11 @@ while next !== nothing
 end
 
 @test count == 1220
+
+#=
+
+leer_record(io::IO; read_chunk::Bool=true) # opcional, con keyword
+
+leer_record(io::IO, read_chunk::Bool=true) # opcional, posicional
+
+=#
